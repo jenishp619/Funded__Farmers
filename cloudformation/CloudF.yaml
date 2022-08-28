@@ -1,0 +1,161 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Metadata:
+    Generator: "former2"
+Description: ""
+Resources:
+    S3Bucket:
+        Type: "AWS::S3::Bucket"
+        Properties:
+            BucketName: "products33newfarmercp1"
+
+    products33newcp1:
+        Type: "AWS::DynamoDB::Table"
+        Properties:
+            AttributeDefinitions: 
+              - 
+                AttributeName: "id"
+                AttributeType: "S"
+            TableName: "products33newcp"
+            KeySchema: 
+              - 
+                AttributeName: "id"
+                KeyType: "HASH"
+            ProvisionedThroughput: 
+                ReadCapacityUnits: 1
+                WriteCapacityUnits: 1
+
+    usersnew33cp2:
+        Type: "AWS::DynamoDB::Table"
+        Properties:
+            AttributeDefinitions: 
+              - 
+                AttributeName: "id"
+                AttributeType: "S"
+            TableName: "usersnew33cp1"
+            KeySchema: 
+              - 
+                AttributeName: "id"
+                KeyType: "HASH"
+            ProvisionedThroughput: 
+                ReadCapacityUnits: 1
+                WriteCapacityUnits: 1
+    
+    ## VPC
+    PublicPrivateFarmVPC:
+      Type: AWS::EC2::VPC
+      Properties:
+        CidrBlock: 10.0.0.0/16
+        Tags:
+          - Key: Name
+            Value: Project VPC
+
+    ## SUBNETS
+
+    ## Public Subnet 1
+    PublicFarm1:
+      Type: AWS::EC2::Subnet
+      Properties:
+        VpcId: !Ref PublicPrivateFarmVPC
+        AvailabilityZone: us-east-1a
+        CidrBlock: 10.0.1.0/24
+        MapPublicIpOnLaunch: true
+        Tags:
+          - Key: Name
+            Value: Project PublicFarm1
+
+    ## Private Subnet 1
+    PrivateFarm1:
+      Type: AWS::EC2::Subnet
+      Properties:
+        VpcId: !Ref PublicPrivateFarmVPC
+        AvailabilityZone: us-east-1b
+        CidrBlock: 10.0.2.0/24
+        MapPublicIpOnLaunch: false
+        Tags:
+          - Key: Name
+            Value: Project PrivateFarm1
+
+    ## INTERNET GATEWAY
+    InternetGateway:
+      Type: AWS::EC2::InternetGateway
+
+    GatewayToInternet:
+      Type: AWS::EC2::VPCGatewayAttachment
+      Properties:
+        VpcId: !Ref PublicPrivateFarmVPC
+        InternetGatewayId: !Ref InternetGateway
+
+    ## PUBLIC ROUTING
+    PublicRouteTable:
+      Type: AWS::EC2::RouteTable
+      Properties:
+        VpcId: !Ref PublicPrivateFarmVPC
+
+    PublicRoute:
+      Type: AWS::EC2::Route
+      DependsOn: GatewayToInternet
+      Properties:
+        RouteTableId: !Ref PublicRouteTable
+        DestinationCidrBlock: 0.0.0.0/0
+        GatewayId: !Ref InternetGateway
+
+    Public1RouteTableAssociation:
+      Type: AWS::EC2::SubnetRouteTableAssociation
+      Properties:
+        SubnetId: !Ref PublicFarm1
+        RouteTableId: !Ref PublicRouteTable
+
+    
+    ApiGatewayRestApi1:
+        Type: "AWS::ApiGateway::RestApi"
+        Properties:
+            Name: "sns-order-newcp"
+            ApiKeySourceType: "HEADER"
+            EndpointConfiguration: 
+                Types: 
+                  - "REGIONAL"
+
+    ApiGatewayRestApi2:
+        Type: "AWS::ApiGateway::RestApi"
+        Properties:
+            Name: "logincp-gateway"
+            ApiKeySourceType: "HEADER"
+            EndpointConfiguration: 
+                Types: 
+                  - "REGIONAL"
+
+    EC2VPC:
+        Type: "AWS::EC2::VPC"
+        Properties:
+            CidrBlock: "10.0.0.0/16"
+            EnableDnsSupport: true
+            EnableDnsHostnames: false
+            InstanceTenancy: "default"
+            Tags: 
+              - 
+                Key: "Name"
+                Value: "FarmerVpcnewcp"
+
+
+    EC2RouteTable:
+        Type: "AWS::EC2::RouteTable"
+        Properties:
+            VpcId: !Ref EC2VPC
+            Tags: 
+              - 
+                Key: "Name"
+                Value: "Farmerroutecpnew"
+
+    EC2InternetGateway:
+        Type: "AWS::EC2::InternetGateway"
+        Properties:
+            Tags: 
+              - 
+                Key: "Name"
+                Value: "FarmerIGnewcp"
+
+    SNSTopic:
+        Type: "AWS::SNS::Topic"
+        Properties:
+            DisplayName: "Farmerordernewcp"
+            TopicName: "myFarmnewcp"
